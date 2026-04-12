@@ -7,7 +7,10 @@ const audioStore = useAudioStore()
     <UCard class="max-w-lg w-full">
       <template #header>
         <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-ear" class="size-7 text-primary shrink-0" />
+          <UIcon
+            name="i-lucide-ear"
+            class="size-7 text-primary shrink-0"
+          />
           <h1 class="text-2xl font-bold tracking-tight">
             FreqThresh
           </h1>
@@ -22,7 +25,7 @@ const audioStore = useAudioStore()
 
         <div class="space-y-2">
           <p class="text-sm font-medium">
-            Step 1 — 音量を調整する
+            音量を調整する
           </p>
           <p class="text-sm text-muted">
             テストトーンを再生し、デバイスの音量を快適なレベルに設定してください。測定音もこの音量で再生されます。

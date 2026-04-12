@@ -19,7 +19,10 @@ onUnmounted(() => {
 })
 
 watch(() => measureStore.isComplete, (complete: boolean) => {
-  if (complete) navigateTo('/results')
+  if (!complete) return
+  const encode = (arr: Array<number | null>) => arr.map(v => v !== null ? String(v) : '').join(',')
+  const freqs = measureStore.MEASURE_FREQS.join(',')
+  navigateTo(`/results?freqs=${freqs}&l=${encode(measureStore.results[0])}&r=${encode(measureStore.results[1])}`)
 })
 </script>
 

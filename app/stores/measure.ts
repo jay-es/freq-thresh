@@ -46,12 +46,10 @@ export const useMeasureStore = defineStore('measure', () => {
   function advance(): void {
     if (currentFreqIndex.value < MEASURE_FREQS.length - 1) {
       currentFreqIndex.value++
-    }
-    else if (currentEarIndex.value < EARS.length - 1) {
+    } else if (currentEarIndex.value < EARS.length - 1) {
       currentEarIndex.value++
       currentFreqIndex.value = 0
-    }
-    else {
+    } else {
       const { stopSineTone } = useAudio()
       stopSineTone()
       isComplete.value = true

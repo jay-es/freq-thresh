@@ -5,8 +5,7 @@ export const useAudioStore = defineStore('audio', () => {
     const { startWhiteNoise, stopWhiteNoise } = useAudio()
     if (isPlaying.value) {
       stopWhiteNoise()
-    }
-    else {
+    } else {
       startWhiteNoise()
     }
     isPlaying.value = !isPlaying.value
