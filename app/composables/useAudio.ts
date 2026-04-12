@@ -3,6 +3,9 @@ import { TEST_TONE_DBFS, WHITE_NOISE_BUFFER_SEC } from '~/constants/audio'
 let ctx: AudioContext | null = null
 let sourceNode: AudioBufferSourceNode | null = null
 let gainNode: GainNode | null = null
+let sineSource: OscillatorNode | null = null
+let sineGain: GainNode | null = null
+let sinePanner: StereoPannerNode | null = null
 
 export function useAudio() {
   function getContext(): AudioContext {
@@ -37,5 +40,34 @@ export function useAudio() {
     gainNode = null
   }
 
-  return { startWhiteNoise, stopWhiteNoise }
+  function startSineTone(freq: number, dbfs: number, ear: 'left' | 'right'): void {
+    stopSineTone()
+    const context = getContext()
+
+    sineGain = context.createGain()
+    sineGain.gain.value = 10 ** (dbfs / 20)
+
+    sinePanner = context.createStereoPanner()
+    sinePanner.pan.value = ear === 'left' ? -1 : 1
+
+    sineSource = context.createOscillator()
+    sineSource.type = 'sine'
+    sineSource.frequency.value = freq
+    sineSource.connect(sineGain)
+    sineGain.connect(sinePanner)
+    sinePanner.connect(context.destination)
+    sineSource.start()
+  }
+
+  function stopSineTone(): void {
+    sineSource?.stop()
+    sineSource?.disconnect()
+    sineGain?.disconnect()
+    sinePanner?.disconnect()
+    sineSource = null
+    sineGain = null
+    sinePanner = null
+  }
+
+  return { startWhiteNoise, stopWhiteNoise, startSineTone, stopSineTone }
 }
