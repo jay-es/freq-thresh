@@ -19,8 +19,8 @@ const audioStore = useAudioStore()
 
       <div class="space-y-6">
         <p class="text-muted">
-          各周波数でどれくらい小さな音まで聞こえるかを測定します。<br>
-          再生機器の周波数特性が測定結果に影響します。できるだけフラットな特性のヘッドフォン・スピーカーを使用してください。
+          各周波数の最小可聴レベルを測定します。<br>
+          再生機器の周波数特性が結果に影響するため、フラットな特性のヘッドフォンまたはスピーカーを使用してください。
         </p>
 
         <div class="space-y-2">
@@ -28,7 +28,7 @@ const audioStore = useAudioStore()
             音量を調整する
           </p>
           <p class="text-sm text-muted">
-            テストトーンを再生し、デバイスの音量を快適なレベルに設定してください。測定音もこの音量で再生されます。
+            テストトーンを再生して、測定に適した音量に設定してください。
           </p>
           <UButton
             :icon="audioStore.isPlaying ? 'i-lucide-square' : 'i-lucide-volume-2'"

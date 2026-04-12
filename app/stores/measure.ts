@@ -1,9 +1,11 @@
 import { MEASURE_FREQS, MEASURE_STEP_DB, TEST_TONE_DBFS } from '~/constants/audio'
+import type { Ear } from '~/composables/useAudio'
 
-const EARS = ['left', 'right'] as const
-type Ear = typeof EARS[number]
+const EARS = ['left', 'right'] as const satisfies Ear[]
 
 export const useMeasureStore = defineStore('measure', () => {
+  const audio = useAudio()
+
   const currentEarIndex = ref(0)
   const currentFreqIndex = ref(0)
   const currentDbfs = ref(TEST_TONE_DBFS)
@@ -17,8 +19,8 @@ export const useMeasureStore = defineStore('measure', () => {
   const currentStep = computed(() =>
     currentEarIndex.value * MEASURE_FREQS.length + currentFreqIndex.value
   )
-  const currentFreq = computed(() => MEASURE_FREQS[currentFreqIndex.value])
-  const currentEar = computed((): Ear => EARS[currentEarIndex.value])
+  const currentFreq = computed(() => MEASURE_FREQS[currentFreqIndex.value]!)
+  const currentEar = computed((): Ear => EARS[currentEarIndex.value]!)
 
   function startMeasure(): void {
     currentEarIndex.value = 0
@@ -27,19 +29,17 @@ export const useMeasureStore = defineStore('measure', () => {
     lastHeardDbfs.value = null
     isComplete.value = false
     results.value = [Array(MEASURE_FREQS.length).fill(null), Array(MEASURE_FREQS.length).fill(null)]
-    const { startSineTone } = useAudio()
-    startSineTone(currentFreq.value, currentDbfs.value, currentEar.value)
+    audio.startSineTone(currentFreq.value, currentDbfs.value, currentEar.value)
   }
 
   function canHear(): void {
     lastHeardDbfs.value = currentDbfs.value
     currentDbfs.value -= MEASURE_STEP_DB
-    const { startSineTone } = useAudio()
-    startSineTone(currentFreq.value, currentDbfs.value, currentEar.value)
+    audio.startSineTone(currentFreq.value, currentDbfs.value, currentEar.value)
   }
 
   function cannotHear(): void {
-    results.value[currentEarIndex.value][currentFreqIndex.value] = lastHeardDbfs.value
+    results.value[currentEarIndex.value]![currentFreqIndex.value] = lastHeardDbfs.value
     advance()
   }
 
@@ -50,15 +50,13 @@ export const useMeasureStore = defineStore('measure', () => {
       currentEarIndex.value++
       currentFreqIndex.value = 0
     } else {
-      const { stopSineTone } = useAudio()
-      stopSineTone()
+      audio.stopSineTone()
       isComplete.value = true
       return
     }
     currentDbfs.value = TEST_TONE_DBFS
     lastHeardDbfs.value = null
-    const { startSineTone } = useAudio()
-    startSineTone(currentFreq.value, currentDbfs.value, currentEar.value)
+    audio.startSineTone(currentFreq.value, currentDbfs.value, currentEar.value)
   }
 
   return {

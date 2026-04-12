@@ -1,13 +1,12 @@
 <script setup lang="ts">
+import { freqLabel } from '~/utils/format'
+
 const measureStore = useMeasureStore()
 
 const progress = computed(() => measureStore.currentStep + 1)
 
 const earLabel = computed(() => measureStore.currentEar === 'left' ? '左耳' : '右耳')
-const freqLabel = computed(() => {
-  const hz = measureStore.currentFreq
-  return hz >= 1000 ? `${hz / 1000}kHz` : `${hz}Hz`
-})
+const currentFreqLabel = computed(() => freqLabel(measureStore.currentFreq))
 
 onMounted(() => {
   measureStore.startMeasure()
@@ -22,7 +21,7 @@ watch(() => measureStore.isComplete, (complete: boolean) => {
   if (!complete) return
   const encode = (arr: Array<number | null>) => arr.map(v => v !== null ? String(v) : '').join(',')
   const freqs = measureStore.MEASURE_FREQS.join(',')
-  navigateTo(`/results?freqs=${freqs}&l=${encode(measureStore.results[0])}&r=${encode(measureStore.results[1])}`)
+  navigateTo(`/results?freqs=${freqs}&l=${encode(measureStore.results[0] ?? [])}&r=${encode(measureStore.results[1] ?? [])}`)
 })
 </script>
 
@@ -55,7 +54,7 @@ watch(() => measureStore.isComplete, (complete: boolean) => {
 
         <div class="text-center space-y-1">
           <p class="text-2xl font-bold">
-            {{ earLabel }} — {{ freqLabel }}
+            {{ earLabel }} — {{ currentFreqLabel }}
           </p>
         </div>
 

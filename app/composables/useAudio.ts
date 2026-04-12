@@ -1,5 +1,7 @@
 import { TEST_TONE_DBFS, WHITE_NOISE_BUFFER_SEC } from '~/constants/audio'
 
+export type Ear = 'left' | 'right'
+
 let ctx: AudioContext | null = null
 let sourceNode: AudioBufferSourceNode | null = null
 let gainNode: GainNode | null = null
@@ -9,9 +11,13 @@ let sinePanner: StereoPannerNode | null = null
 
 export function useAudio() {
   function getContext(): AudioContext {
-    if (!ctx) ctx = new AudioContext()
-    if (ctx.state === 'suspended') ctx.resume()
-    return ctx
+    try {
+      if (!ctx) ctx = new AudioContext()
+      if (ctx.state === 'suspended') ctx.resume()
+      return ctx
+    } catch {
+      throw new Error('AudioContext の初期化に失敗しました。ブラウザが対応していない可能性があります。')
+    }
   }
 
   function startWhiteNoise(): void {
@@ -33,14 +39,16 @@ export function useAudio() {
   }
 
   function stopWhiteNoise(): void {
-    sourceNode?.stop()
+    try {
+      sourceNode?.stop()
+    } catch { /* already stopped */ }
     sourceNode?.disconnect()
     gainNode?.disconnect()
     sourceNode = null
     gainNode = null
   }
 
-  function startSineTone(freq: number, dbfs: number, ear: 'left' | 'right'): void {
+  function startSineTone(freq: number, dbfs: number, ear: Ear): void {
     stopSineTone()
     const context = getContext()
 
@@ -60,7 +68,9 @@ export function useAudio() {
   }
 
   function stopSineTone(): void {
-    sineSource?.stop()
+    try {
+      sineSource?.stop()
+    } catch { /* already stopped */ }
     sineSource?.disconnect()
     sineGain?.disconnect()
     sinePanner?.disconnect()

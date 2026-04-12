@@ -1,13 +1,19 @@
 <script setup lang="ts">
+import { freqLabel } from '~/utils/format'
+
 const route = useRoute()
 const toast = useToast()
 
 function decodeList(param: unknown): Array<number | null> {
   if (typeof param !== 'string' || param === '') return []
-  return param.split(',').map(s => s === '' ? null : Number(s))
+  return param.split(',').map((s) => {
+    if (s === '') return null
+    const n = Number(s)
+    return Number.isFinite(n) ? n : null
+  })
 }
 
-const freqs = computed(() => decodeList(route.query.freqs) as number[])
+const freqs = computed(() => decodeList(route.query.freqs).filter((v): v is number => v !== null))
 const leftResults = computed(() => decodeList(route.query.l))
 const rightResults = computed(() => decodeList(route.query.r))
 
@@ -16,19 +22,19 @@ const baseline = computed(() => {
   return all.length > 0 ? Math.min(...all) : null
 })
 
-function freqLabel(hz: number): string {
-  return hz >= 1000 ? `${hz / 1000}kHz` : `${hz}Hz`
-}
-
-function formatDbfs(value: number | null): string {
-  if (value === null || baseline.value === null) return '－'
+function formatDbfs(value: number | null | undefined): string {
+  if (value == null || baseline.value === null) return '－'
   const rel = value - baseline.value
   return `+${rel} dB`
 }
 
-function share(): void {
-  navigator.clipboard.writeText(window.location.href)
-  toast.add({ title: 'URLをコピーしました', icon: 'i-lucide-link' })
+async function share(): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(window.location.href)
+    toast.add({ title: 'URLをコピーしました', icon: 'i-lucide-link' })
+  } catch {
+    toast.add({ title: 'コピーに失敗しました', icon: 'i-lucide-alert-circle', color: 'error' })
+  }
 }
 </script>
 
@@ -49,7 +55,7 @@ function share(): void {
 
       <div class="space-y-6">
         <p class="text-sm text-muted">
-          最も小さく聞こえた値を +0 dB として表示しています。値が大きいほど聴こえにくい周波数です。
+          最小可聴レベルを +0 dB として表示しています。値が大きいほど聞こえにくい周波数です。
         </p>
         <table class="w-full text-sm">
           <thead>
