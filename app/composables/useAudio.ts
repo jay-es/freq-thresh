@@ -8,6 +8,7 @@ let gainNode: GainNode | null = null
 let sineSource: OscillatorNode | null = null
 let sineGain: GainNode | null = null
 let sinePanner: StereoPannerNode | null = null
+let sineBeepTimer: ReturnType<typeof setInterval> | null = null
 
 export function useAudio() {
   function getContext(): AudioContext {
@@ -53,7 +54,7 @@ export function useAudio() {
     const context = getContext()
 
     sineGain = context.createGain()
-    sineGain.gain.value = 10 ** (dbfs / 20)
+    sineGain.gain.value = 0
 
     sinePanner = context.createStereoPanner()
     sinePanner.pan.value = ear === 'left' ? -1 : 1
@@ -65,9 +66,42 @@ export function useAudio() {
     sineGain.connect(sinePanner)
     sinePanner.connect(context.destination)
     sineSource.start()
+
+    // ピーピーピー、ピーピーピー… パターン
+    const amplitude = 10 ** (dbfs / 20)
+    const onSec = 0.25 // 1ビープの長さ
+    const offSec = 0.15 // ビープ間の無音
+    const count = 3 // 1グループのビープ数
+    const gapSec = 1 // グループ間の無音
+    const delaySec = 0.4 // 開始までの遅延
+    const lookaheadSec = 1.5 // 先読み幅
+    const scheduleIntervalMs = 500 // スケジューラーの見回り頻度
+    const period = count * (onSec + offSec) + gapSec
+    let nextTime = context.currentTime + delaySec
+
+    const scheduleGroup = () => {
+      const g = sineGain!.gain
+      const lookahead = context.currentTime + lookaheadSec
+      while (nextTime < lookahead) {
+        let t = nextTime
+        for (let i = 0; i < count; i++) {
+          g.setValueAtTime(amplitude, t)
+          g.setValueAtTime(0, t + onSec)
+          t += onSec + offSec
+        }
+        nextTime += period
+      }
+    }
+
+    scheduleGroup()
+    sineBeepTimer = setInterval(scheduleGroup, scheduleIntervalMs)
   }
 
   function stopSineTone(): void {
+    if (sineBeepTimer !== null) {
+      clearInterval(sineBeepTimer)
+      sineBeepTimer = null
+    }
     try {
       sineSource?.stop()
     } catch { /* already stopped */ }
